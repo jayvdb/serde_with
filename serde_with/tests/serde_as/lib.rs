@@ -524,16 +524,22 @@ fn string_with_separator() {
     };
 
     #[serde_as]
+    #[derive(Debug, Deserialize, PartialEq, Serialize)]
+    #[serde(untagged)]
+    enum NewlineSeparatedStringSet {
+        Unix(#[serde_as(as = "StringWithSeparator::<UnixLineSeparator, String>")] BTreeSet<String>),
+        Dos(#[serde_as(as = "StringWithSeparator::<DosLineSeparator, String>")] BTreeSet<String>),
+    }
+
+    #[serde_as]
     #[derive(Deserialize, Serialize)]
     struct A {
         #[serde_as(as = "StringWithSeparator::<SpaceSeparator, String>")]
         tags: Vec<String>,
         #[serde_as(as = "StringWithSeparator::<CommaSeparator, String>")]
         more_tags: BTreeSet<String>,
-        #[serde_as(as = "StringWithSeparator::<UnixLineSeparator, String>")]
-        lf_tags: BTreeSet<String>,
-        #[serde_as(as = "StringWithSeparator::<DosLineSeparator, String>")]
-        crlf_tags: BTreeSet<String>,
+        lf_tags: NewlineSeparatedStringSet,
+        crlf_tags: NewlineSeparatedStringSet,
     }
 
     let v: A = serde_json::from_str(
@@ -551,19 +557,19 @@ fn string_with_separator() {
         v.more_tags
     );
     assert_eq!(
-        BTreeSet::from(["foo".to_string(), "bar".to_string()]),
+        NewlineSeparatedStringSet::Unix(BTreeSet::from(["foo".to_string(), "bar".to_string()])),
         v.lf_tags
     );
     assert_eq!(
-        BTreeSet::from(["foo".to_string(), "bar".to_string()]),
+        NewlineSeparatedStringSet::Dos(BTreeSet::from(["foo".to_string(), "bar".to_string()])),
         v.crlf_tags
     );
 
     let x = A {
         tags: vec!["1".to_string(), "2".to_string(), "3".to_string()],
         more_tags: BTreeSet::default(),
-        lf_tags: BTreeSet::default(),
-        crlf_tags: BTreeSet::default(),
+        lf_tags: NewlineSeparatedStringSet::Unix(BTreeSet::default()),
+        crlf_tags: NewlineSeparatedStringSet::Unix(BTreeSet::default()),
     };
     assert_eq!(
         r#"{"tags":"1 2 3","more_tags":"","lf_tags":"","crlf_tags":""}"#,
