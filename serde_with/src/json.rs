@@ -119,3 +119,22 @@ where
         deserializer.deserialize_str(Helper::<T, TAs>(PhantomData))
     }
 }
+
+impl<T> From<std::vec::Vec<u8>> for JsonString<T> {
+    fn from(value: std::vec::Vec<u8>) -> Self {
+        JsonString(serde_json::from_slice(&value).unwrap())
+    }
+}
+
+impl<T> crate::base64::Alphabet for JsonString<T> {
+    fn charset() -> ::base64::alphabet::Alphabet {
+        ::base64::alphabet::URL_SAFE
+    }
+}
+/*
+impl<T> AsRef<[u8]> for JsonString<T> {
+    fn as_ref(&self) -> &[u8] {
+        serde_json::to_vec(&self.0).unwrap().as_ref()
+    }
+}
+*/

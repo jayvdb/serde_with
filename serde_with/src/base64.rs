@@ -166,6 +166,7 @@ mod sealed {
     impl Sealed for super::Bcrypt {}
     impl Sealed for super::ImapMutf7 {}
     impl Sealed for super::BinHex {}
+    impl<T> Sealed for crate::json::JsonString<T> {}
 }
 
 /// A base64 alphabet
